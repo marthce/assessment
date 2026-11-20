@@ -2,10 +2,12 @@ name: env_2952960
 channels:
   - conda-forge
   - defaults
+  - bioconda
 dependencies:
   - xmlstarlet=1.6.1
   - tidy-html5=5.8.0
   - entrez-direct
   - gh
   - curl
+  - snakemake
 prefix: /home/mcedden/miniconda3/envs/env_2952960
