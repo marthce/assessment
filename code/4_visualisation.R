@@ -222,7 +222,8 @@ rmsw_byabstract |> filter(word %in% c("mice", "mouse")) |> group_by(PMID) |>
 # augment data set with decade and number of articles per year
 
 extended <- articles |> mutate(Decade = floor(Year/10)*10) |>
-  add_count(Year, name = "PerYear") |> add_count(Decade, name = "PerDecade")
+  add_count(Year, name = "ArtPerYear") |>
+  add_count(Decade, name = "ArtPerDecade")
 
 exbyab <- extended |> unnest_tokens(word, AbstractText) |>
   anti_join(stop_words)
@@ -324,3 +325,244 @@ exbyab |> filter(word == "coli") |>
   geom_line()+
   labs(y = "Proportion",
        title = "Proportion of articles mentioning e. coli by decade")
+
+
+# try to put them on the same plot.
+
+Region <- c("asia", "europe", "africa", "america", "australia")
+
+# approach 1
+
+
+# on the same plot
+exbyab |> filter(word %in% c("asia", "europe", "africa", "america", "australia")) |>
+  group_by(PMID) |> arrange(Year) |> distinct() |> ungroup() |> group_by(word) |>
+  add_count(Decade, name = "RegionPerDecade") |>
+  mutate(PropDecade = RegionPerDecade / ArtPerDecade) |>
+  ggplot(mapping = aes(x = Decade, y = PropDecade, colour = word))+
+  geom_point()+
+  geom_line()+
+  labs(y = "Proportion",
+       title = "Proportion of articles mentioning different world regions by decade")+
+  scale_colour_discrete(labels = c("Africa", "America", "Asia", "Australia", "Europe"),
+                        name = "Region")
+
+
+# on different plots - this is better
+exbyab |> filter(word %in% c("asia", "europe", "africa", "america", "australia")) |>
+  group_by(PMID) |> arrange(Year) |> distinct() |> ungroup() |> group_by(word) |>
+  add_count(Decade, name = "RegionPerDecade") |>
+  mutate(PropDecade = RegionPerDecade / ArtPerDecade) |>
+  ggplot(mapping = aes(x = Decade, y = PropDecade, colour = word))+
+  geom_point()+
+  geom_line()+
+  facet_wrap(~word, ncol = 2,
+             labeller = as_labeller(c(africa = "Africa",
+                                      america = "America",
+                                      asia = "Asia",
+                                      australia = "Australia",
+                                      europe = "Europe")))+
+  labs(y = "Proportion", x = NULL,
+       title = "Proportion of articles mentioning different world regions by decade")+
+  theme(legend.position="none")
+
+# ^ Works!
+
+# Need to add zeroes, and search for names of specific countries and cities too.
+
+
+# Create data frames for key words for each region.
+
+# How to decide regions?
+
+# Compare Asia China, India, Japan and Korea
+exbyab |> filter(word %in% c("asia", "china", "india", "japan", "korea")) |>
+  group_by(PMID) |> arrange(Year) |> distinct() |> ungroup() |> group_by(word) |>
+  add_count(Decade, name = "RegionPerDecade") |>
+  mutate(PropDecade = RegionPerDecade / ArtPerDecade) |>
+  ggplot(mapping = aes(x = Decade, y = PropDecade, colour = word))+
+  geom_point()+
+  geom_line()+
+  labs(y = "Proportion",
+       title = "Proportion of articles mentioning countries in Asia by decade")+
+  scale_colour_discrete(labels = c("Asia", "China", "India", "Japan", "Korea"),
+                        name = "Region")
+
+# One for all asia:
+exbyab |> filter(word %in% c("asia", "india", "china", "japan", "korea")) |>
+  group_by(PMID) |>
+  slice_head() |> ungroup() |> arrange(Year) |>
+  add_count(Decade, name = "AsiaPerDecade") |>
+  mutate(PropDecade = AsiaPerDecade / ArtPerDecade) |>
+  ggplot(mapping = aes(x = Decade, y = PropDecade))+
+  geom_point()+
+  geom_line()+
+  labs(y = "Proportion",
+       title = "Asia (India, China, Japan and Korea) by decade")
+
+
+# Compare Australia and New Zealand
+exbyab |> filter(word %in% c("australia", "zealand")) |>
+  group_by(PMID) |> arrange(Year) |> distinct() |> ungroup() |> group_by(word) |>
+  add_count(Decade, name = "RegionPerDecade") |>
+  mutate(PropDecade = RegionPerDecade / ArtPerDecade) |>
+  ggplot(mapping = aes(x = Decade, y = PropDecade, colour = word))+
+  geom_point()+
+  geom_line()+
+  labs(y = "Proportion",
+       title = "Proportion of articles mentioning Australia vs New Zealand")+
+  scale_colour_discrete(labels = c("Asia", "New Zealand"),
+                        name = "Region")
+
+# Cumulative, Australia + New Zealand
+exbyab |> filter(word %in% c("australia", "zealand")) |>
+  group_by(PMID) |>
+  slice_head() |> ungroup() |> arrange(Year) |>
+  add_count(Decade, name = "AsiaPerDecade") |>
+  mutate(PropDecade = AsiaPerDecade / ArtPerDecade) |>
+  ggplot(mapping = aes(x = Decade, y = PropDecade))+
+  geom_point()+
+  geom_line()+
+  labs(y = "Proportion",
+       title = "Oceania (Australia and New Zealand) by decade")
+
+
+
+
+# Compare member states of UK
+
+exbyab |> filter(word %in% c("england", "wales", "scotland")) |>
+  group_by(PMID) |> arrange(Year) |> distinct() |> ungroup() |> group_by(word) |>
+  add_count(Decade, name = "RegionPerDecade") |>
+  mutate(PropDecade = RegionPerDecade / ArtPerDecade) |>
+  ggplot(mapping = aes(x = Decade, y = PropDecade, colour = word))+
+  geom_point()+
+  geom_line()+
+  labs(y = "Proportion",
+       title = "Proportion of articles mentioning England, Scotland and Wales")+
+  scale_colour_discrete(labels = c("England", "Wales", "Scotland"),
+                        name = "Region")
+
+# Together:
+exbyab |> filter(word %in% c("england", "wales", "scotland")) |>
+  group_by(PMID) |>
+  slice_head() |> ungroup() |> arrange(Year) |>
+  add_count(Decade, name = "UKPerDecade") |>
+  mutate(PropDecade = UKPerDecade / ArtPerDecade) |>
+  ggplot(mapping = aes(x = Decade, y = PropDecade))+
+  geom_point()+
+  geom_line()+
+  labs(y = "Proportion",
+       title = "UK (England, Scotland and Wales) by decade")
+
+
+# ATTEMPT 1 --------------------------------------------------------------------
+
+
+europekey <- c("iceland", "icelandic", "ireland", "irish", "uk", "british",
+               "england", "english", "scotland", "scottish", "wales", "welsh",
+               "spain", "spanish", "portugal", "portuguese", "france", "french",
+               "belgium", "belgian", "netherlands", "dutch", "luxembourg",
+               "denmark", "danish", "germany", "german", "switzerland", "swiss",
+               "liechtenstein", "italy", "italian", "malta", "maltese", "czechia",
+               "czech", "poland", "polish", "austria", "austrian", "slovakia",
+               "slovakian", "slovenia", "slovenian", "croatia", "croatian",
+               "bosnia", "bosnian", "serbia", "serbian", "montenegro",
+               "macedonia", "macedonian", "kosovo", "albania", "albanian",
+               "greece", "greek", "romania", "romanian", "bulgaria", "bulgarian",
+               "hungary", "hungarian", "ukraine", "ukrainian", "belarus",
+               "belarussian", "russia", "russian", "moldova", "moldovan",
+               "estonia", "estonian", "latvia", "latvian", "lithuania", "lithuanian",
+               "norway", "norwegian", "sweden", "swedish", "finland", "finnish",
+               "turkish", "turkiye", "georgia", "georgian", "balkan", "balkans",
+               "scandinavia", "scandinavian", "mediterranean", "europe",
+               "european")
+
+
+exbyab |> filter(word %in% europekey) |>
+  group_by(PMID) |>
+  slice_head() |> ungroup() |> arrange(Year) |>
+  add_count(Decade, name = "EuropePerDecade") |>
+  mutate(PropDecade = EuropePerDecade / ArtPerDecade) |>
+  ggplot(mapping = aes(x = Decade, y = PropDecade))+
+  geom_point()+
+  geom_line()+
+  labs(y = "Proportion",
+       title = "All of Europe")
+
+
+# just countries, not demonyms:
+europekey2 <- c("iceland", "ireland", "uk", "england", "scotland", "wales",
+               "spain", "portugal", "france", "belgium", "netherlands",
+               "luxembourg", "denmark", "germany", "switzerland",
+               "liechtenstein", "italy", "malta", "czechia", "czech", "poland",
+               "austria", "slovakia", "slovenia", "croatia", "bosnia", "serbia",
+               "montenegro","macedonia", "kosovo", "albania", "greece",
+               "romania", "bulgaria", "hungary", "ukraine", "belarus", "russia",
+               "moldova","estonia", "latvia", "lithuania","norway", "sweden",
+               "finland", "turkiye", "georgia",
+               "balkan", "balkans", "scandinavia", "scandinavian",
+               "mediterranean", "europe", "european")
+
+exbyab |> filter(word %in% europekey2) |>
+  group_by(PMID) |>
+  slice_head() |> ungroup() |> arrange(Year) |>
+  add_count(Decade, name = "EuropePerDecade") |>
+  mutate(PropDecade = EuropePerDecade / ArtPerDecade) |>
+  ggplot(mapping = aes(x = Decade, y = PropDecade))+
+  geom_point()+
+  geom_line()+
+  labs(y = "Proportion",
+       title = "All of Europe (Key 2)")
+
+
+# Maybe add a column to data for region?
+
+
+africakey2 <- c("algeria", "angola", "benin", "botswana", "burkina", "burundi",
+                "cabo", "cameroon", "congo", "ivory", "ivoire", "djibouti",
+                "eritrea", "eswatini", "ethiopia", "gabon", "ghana", "gambia",
+                "kenya", "liberia", "libya", "madagascar", "malawi", "mali",
+                "mauritania", "mauritius", "morocco", "mozambique", "namibia",
+                "niger", "nigeria", "rwanda", "senegal", "seychelles",
+                "sierra", "somalia", "sudan", "tanzania", "togo", "tunisia",
+                "uganda", "zambia", "zimbabwe",
+                "sahara", "saharan", "africa", "african")
+
+exbyab |> filter(word %in% c("africa", "african")) |>
+  group_by(PMID) |>
+  slice_head() |> ungroup() |> arrange(Year) |>
+  add_count(Decade, name = "AfricaPerDecade") |>
+  mutate(PropDecade = AfricaPerDecade / ArtPerDecade) |>
+  ggplot(mapping = aes(x = Decade, y = PropDecade))+
+  geom_point()+
+  geom_line()+
+  labs(y = "Proportion",
+       title = "Just  'Africa'")
+
+exbyab |> filter(word %in% africakey2) |>
+  group_by(PMID) |>
+  slice_head() |> ungroup() |> arrange(Year) |>
+  add_count(Decade, name = "AfricaPerDecade") |>
+  mutate(PropDecade = AfricaPerDecade / ArtPerDecade) |>
+  ggplot(mapping = aes(x = Decade, y = PropDecade))+
+  geom_point()+
+  geom_line()+
+  labs(y = "Proportion",
+       title = "All of Africa (Key 2)")
+
+
+oceaniakey2 <- c("australia", "zealand", "fiji", "kiribati", "marshall",
+                 "solomon", "micronesia", "nauru", "palau", "samoa", "tonga",
+                 "tuvalu", "vanuatu", "polynesia", "pacific")
+
+exbyab |> filter(word %in% oceaniakey2) |>
+  group_by(PMID) |>
+  slice_head() |> ungroup() |> arrange(Year) |>
+  add_count(Decade, name = "OceaniaPerDecade") |>
+  mutate(PropDecade = OceaniaPerDecade / ArtPerDecade) |>
+  ggplot(mapping = aes(x = Decade, y = PropDecade))+
+  geom_point()+
+  geom_line()+
+  labs(y = "Proportion",
+       title = "All of Oceania (Key 2)")
