@@ -519,13 +519,13 @@ exbyab |> filter(word %in% europekey2) |>
 # Maybe add a column to data for region?
 
 
-africakey2 <- c("algeria", "angola", "benin", "botswana", "burkina", "burundi",
-                "cabo", "cameroon", "congo", "ivory", "ivoire", "djibouti",
+africakey2 <- c("algeria", "angola", "benin", "botswana", "burundi",
+                "cameroon", "congo", "djibouti",
                 "eritrea", "eswatini", "ethiopia", "gabon", "ghana", "gambia",
                 "kenya", "liberia", "libya", "madagascar", "malawi", "mali",
                 "mauritania", "mauritius", "morocco", "mozambique", "namibia",
                 "niger", "nigeria", "rwanda", "senegal", "seychelles",
-                "sierra", "somalia", "sudan", "tanzania", "togo", "tunisia",
+                "somalia", "sudan", "tanzania", "togo", "tunisia",
                 "uganda", "zambia", "zimbabwe",
                 "sahara", "saharan", "africa", "african")
 
@@ -552,9 +552,10 @@ exbyab |> filter(word %in% africakey2) |>
        title = "All of Africa (Key 2)")
 
 
-oceaniakey2 <- c("australia", "zealand", "fiji", "kiribati", "marshall",
-                 "solomon", "micronesia", "nauru", "palau", "samoa", "tonga",
-                 "tuvalu", "vanuatu", "polynesia", "pacific")
+oceaniakey2 <- c("australia", "zealand", "fiji", "kiribati",
+                 "micronesia", "nauru", "palau", "samoa", "tonga",
+                 "tuvalu", "vanuatu", "polynesia", "australasia",
+                 "australasian", "oceania")
 
 exbyab |> filter(word %in% oceaniakey2) |>
   group_by(PMID) |>
@@ -566,3 +567,208 @@ exbyab |> filter(word %in% oceaniakey2) |>
   geom_line()+
   labs(y = "Proportion",
        title = "All of Oceania (Key 2)")
+
+
+americaskey2 <- c("canada", "mexico", "antigua", "barbuda", "bahamas",
+                  "barbados", "cuba", "dominica", "grenada",
+                  "haiti", "jamaica", "vincent",
+                  "grenadines", "trinidad", "tobago", "caribbean",
+                  "guatemala", "belize", "honduras", "nicaragua",
+                  "panama", "argentina", "bolivia", "brazil", "chile",
+                  "colombia", "ecuador", "guyana", "paraguay", "peru",
+                  "suriname", "uruguay", "venezuela", "america", "american")
+
+exbyab |> filter(word %in% americaskey2) |>
+  group_by(PMID) |>
+  slice_head() |> ungroup() |> arrange(Year) |>
+  add_count(Decade, name = "AmericasPerDecade") |>
+  mutate(PropDecade = AmericasPerDecade / ArtPerDecade) |>
+  ggplot(mapping = aes(x = Decade, y = PropDecade))+
+  geom_point()+
+  geom_line()+
+  labs(y = "Proportion",
+       title = "All of Americas (Key 2)")
+
+
+
+asiakey2 <- c("asia", "asian", "mongolia", "china", "japan", "korea", "taiwan",
+              "philippines", "papua", "indonesia", "malaysia", "brunei",
+              "cambodia", "laos", "vietnam", "thailand", "myanmar", "burma",
+              "bangladesh", "bhutan", "nepal", "india", "pakistan",
+              "timor", "kazakhstan", "kyrgyzstan", "uzbekistan", "tajikistan")
+
+exbyab |> filter(word %in% asiakey2) |>
+  group_by(PMID) |>
+  slice_head() |> ungroup() |> arrange(Year) |>
+  add_count(Decade, name = "AsiaPerDecade") |>
+  mutate(PropDecade = AsiaPerDecade / ArtPerDecade) |>
+  ggplot(mapping = aes(x = Decade, y = PropDecade))+
+  geom_point()+
+  geom_line()+
+  labs(y = "Proportion",
+       title = "All of Asia (Key 2)")
+
+# How to do pairs of words?
+
+# n grams
+
+extended_ngrams <- extended |> unnest_tokens(bigram, AbstractText,
+                                             token = "ngrams", n = 2)
+
+bigrams_separated <- extended_ngrams |> separate(bigram, c("word1", "word2"), sep = " ")
+bigrams_filtered <- bigrams_separated |>
+  filter(!word1 %in% stop_words$word) |>
+  filter(!word2 %in% stop_words$word) |>
+  relocate(word1, .after = ArticleTitle) |>
+  relocate(word2, .after = word1)
+bigrams_filtered |> count(word1, word2, sort = TRUE)
+bigrams_unite <- bigrams_filtered |> unite(bigram, word1, word2, sep = " ")
+
+
+# count for "middle east" and "middle eastern":
+
+bigrams_filtered |> filter(word1 == "middle") |>
+  filter(word2 %in% c("east", "eastern")) |> group_by(PMID) |> slice_head() |>
+  ungroup() |> arrange(Year) |> add_count(Decade, name = "MEPerDecade")
+
+
+bigrams_unite |> relocate(bigram, .after = ArticleTitle) |>
+  filter(bigram %in% c("middle east", "middle eastern", "arab emirates")) |>
+  group_by(PMID) |> slice_head() |> ungroup() |> arrange(Year) |>
+  add_count(Decade, name = "MEPerDecade")
+
+middleeastkey2 <- c("turkmenistan", "afghanistan", "iran", "iraq", "azerbaijan",
+                    "armenia", "syria", "israel", "lebanon", "jordan", "palestine",
+                    "yemen", "oman", "kuwait", "bahrain", "qatar", "egypt",
+                    "arabic")
+
+#-------------------------------------------------------------------------------
+
+# ASIA
+
+asiawords <- exbyab |>
+  filter(word %in% asiakey2) |>
+  group_by(PMID) |> slice_head() |> ungroup() |> arrange(Year)
+
+asiapairs <- bigrams_unite |>
+  filter(bigram %in% c("timor leste", "sri lanka")) |>
+  group_by(PMID) |> slice_head() |> ungroup() |> arrange(Year)
+
+asiacombined <- full_join(asiawords, asiapairs)
+
+asiacombined <- asiacombined |> add_column(Region = "Asia")
+
+# EUROPE
+
+europewords <- exbyab |>
+  filter(word %in% europekey2) |>
+  group_by(PMID) |> slice_head() |> ungroup() |> arrange(Year)
+
+europepairs <- bigrams_unite |>
+  filter(bigram == "united kingdom") |>
+  group_by(PMID) |> slice_head() |> ungroup() |> arrange(Year)
+
+europecombined <- full_join(europewords, europepairs)
+
+europecombined <- europecombined |> add_column(Region = "Europe")
+
+# OCEANIA
+
+oceaniawords <- exbyab |>
+  filter(word %in% oceaniakey2) |>
+  group_by(PMID) |> slice_head() |> ungroup() |> arrange(Year)
+
+oceaniapairs <- bigrams_unite |>
+  filter(bigram %in% c("marshall islands", "solomon islands", "pacific islands")) |>
+  group_by(PMID) |> slice_head() |> ungroup() |> arrange(Year)
+
+oceaniacombined <- full_join(oceaniawords, oceaniapairs)
+
+oceaniacombined <- oceaniacombined |> add_column(Region = "Oceania")
+
+# AFRICA
+
+africawords <- exbyab |>
+  filter(word %in% africakey2) |>
+  group_by(PMID) |> slice_head() |> ungroup() |> arrange(Year)
+
+africapairs <- bigrams_unite |>
+  filter(bigram %in% c("burkina faso", "sierra leone",
+                       "cabo verde", "cape verde", "ivory coast")) |>
+  group_by(PMID) |> slice_head() |> ungroup() |> arrange(Year)
+
+africacombined <- full_join(africawords, africapairs)
+
+africacombined <- africacombined |> add_column(Region = "Africa")
+
+# AMERICAS
+
+americaswords <- exbyab |>
+  filter(word %in% americaskey2) |>
+  group_by(PMID) |> slice_head() |> ungroup() |> arrange(Year)
+
+americaspairs <- bigrams_unite |>
+  filter(bigram %in% c("united states", "puerto rico", "dominican republic",
+                       "saint lucia", "st lucia", "saint kitts", "st kitts",
+                       "el salvador", "costa rica")) |>
+  group_by(PMID) |> slice_head() |> ungroup() |> arrange(Year)
+
+americascombined <- full_join(americaswords, americaspairs)
+
+americascombined <- americascombined |> add_column(Region = "Americas")
+
+# MIDDLE EAST
+
+middleeastwords <- exbyab |>
+  filter(word %in% middleeastkey2) |>
+  group_by(PMID) |> slice_head() |> ungroup() |> arrange(Year)
+
+middleeastpairs <- bigrams_unite |>
+  filter(bigram %in% c("middle east", "middle eastern", "saudi arabia",
+                       "arab emirates")) |>
+  group_by(PMID) |> slice_head() |> ungroup() |> arrange(Year)
+
+middleeastcombined <- full_join(middleeastwords, middleeastpairs)
+
+middleeastcombined <- middleeastcombined |> add_column(Region = "Middle East")
+
+
+
+# Make one big data set
+
+combined <- asiacombined |>
+  full_join(americascombined) |>
+  full_join(middleeastcombined) |>
+  full_join(europecombined) |>
+  full_join(africacombined) |>
+  full_join(oceaniacombined)
+
+
+# Final visualisation yippee!!!!
+
+combined |>
+  group_by(Region) |> add_count(Decade, name = "RegionPerDecade") |>
+  mutate(PropDecade = RegionPerDecade / ArtPerDecade) |>
+  ggplot(mapping = aes(x = Decade, y = PropDecade, colour = Region))+
+  geom_point()+
+  geom_line()+
+  facet_wrap(~Region, ncol = 2)+
+  labs(y = "Proportion", x = NULL,
+       title = "Proportion of articles mentioning different world regions by decade")+
+  theme(legend.position = "none")
+
+
+
+# Try by year just for fun:
+combined |>
+  group_by(Region) |> add_count(Year, name = "RegionPerYear") |>
+  mutate(PropYear = RegionPerYear / ArtPerYear) |>
+  ggplot(mapping = aes(x = Year, y = PropYear, colour = Region))+
+  geom_point()+
+  geom_line()+
+  facet_wrap(~Region, ncol = 2)+
+  labs(y = "Proportion", x = NULL,
+       title = "Proportion of articles mentioning different world regions by year")+
+  theme(legend.position = "none")
+
+# Decade is nicer.
