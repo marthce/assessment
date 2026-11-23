@@ -101,7 +101,7 @@ asiawords <- exbyab |>
   group_by(PMID) |> slice_head() |> ungroup() |> arrange(Year)
 
 asiapairs <- pairs_united |>
-  filter(bigram %in% c("timor leste", "sri lanka")) |>
+  filter(bigram %in% c("timor leste", "sri lanka", "hong kong")) |>
   group_by(PMID) |> slice_head() |> ungroup() |> arrange(Year)
 
 asiacombined <- full_join(asiawords, asiapairs)
