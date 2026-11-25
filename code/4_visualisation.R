@@ -203,6 +203,7 @@ combined |>
   ggplot(mapping = aes(x = Decade, y = PropDecade, colour = Region))+
   geom_point()+
   geom_line()+
+  scale_x_continuous(label = c("1970s", "1980s", "1990s", "2000s", "2010s", "2020s"))+
   facet_wrap(~Region, ncol = 2)+
   labs(y = "Proportion", x = NULL,
        title = "Proportion of articles mentioning different world regions by decade")+
