@@ -209,4 +209,4 @@ combined |>
        title = "Proportion of articles mentioning different world regions by decade")+
   theme(legend.position = "none") -> finalplot
 
-ggsave(finalplot, filename = "finalplot.png", height = 5.81, width = 7.64)
+ggsave(finalplot, filename = "../results/finalplot.png", height = 5.81, width = 7.64)

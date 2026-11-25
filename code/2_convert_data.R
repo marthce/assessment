@@ -2,7 +2,7 @@ library(xml2)
 library(tidyverse)
 
 
-cleandata <- read_xml("clean/raw_data_clean.xml")
+cleandata <- read_xml("../clean/clean_data.xml")
 cleandatalist <- as_list(cleandata)
 
 # Expand
@@ -37,4 +37,4 @@ subset_complete <- clean_tibble_subset |>
 # Save tibble to tsv file
 
 write_tsv(subset_complete,
-          file = paste0("./clean/extract.tsv"))
+          file = paste0("../clean/extract.tsv"))
