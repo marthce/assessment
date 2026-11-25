@@ -1,14 +1,14 @@
 rule all:
     "The default rule"
     input:
-        "visualisation.png"
+        "results/finalplot.png"
 
 rule data_download:
     "Download and clean data"
     input:
         "begin_snakefile.txt"
     output:
-        "clean/raw_data_clean.xml"
+        "clean/clean_data.xml"
     shell:
         """
         cd code
@@ -16,9 +16,9 @@ rule data_download:
         """
 
 rule convert_data:
-    "Convert xml to tsv"
+    "Convert xml to tsv in R"
     input:
-        "clean/raw_data_clean.xml"
+        "clean/clean_data.xml"
     output:
         "clean/extract.tsv"
     shell:
@@ -36,21 +36,20 @@ rule check:
     shell:
         """
         cd code
-        bash 3_check_tsv.sh
+        bash 3_check_tsv.sh > ../logs/check.log
         """
 
 
 rule visualise:
     "Make data visualisation"
     input:
-        "clean/extract.tsv"
+        "clean/extract.tsv",
         "logs/check.log"
     output:
-        "results/visualisation.png"
+        "results/finalplot.png"
     shell:
         """
         cd code
-        mkdir results
-        Rscript 4_make_visualisation.R
+        Rscript 4_visualisation.R
         """
 
