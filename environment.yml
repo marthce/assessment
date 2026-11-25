@@ -2,12 +2,15 @@ name: env_2952960
 channels:
   - conda-forge
   - defaults
-  - bioconda
 dependencies:
-  - xmlstarlet=1.6.1
   - tidy-html5=5.8.0
   - entrez-direct
   - gh
   - curl
   - snakemake
+  - r-base=4.4.1
+  - r-tidyverse=2.0.0
+  - r-xml2=1.6.0
+  - r-tidytext=0.4.3
+  - r-ggplot2=4.0.3
 prefix: /home/mcedden/miniconda3/envs/env_2952960
