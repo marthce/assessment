@@ -10,7 +10,7 @@ rule get_pmids:
     input:
         "begin_snakefile.txt"
     output:
-        "raw/pmids_all.txt"
+        "raw/pmids_all.txt",
         "raw/pmids_20.txt"
     shell:
         """
