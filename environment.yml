@@ -8,7 +8,7 @@ dependencies:
   - entrez-direct
   - gh
   - curl
-  - snakemake
+  - snakemake=7.26
   - r-base=4.4.1
   - r-tidyverse=2.0.0
   - r-xml2=1.6.0
