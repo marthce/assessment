@@ -17,6 +17,7 @@ extended <- articles |> mutate(Decade = floor(Year/10)*10) |>
   add_count(Year, name = "ArtPerYear") |>
   add_count(Decade, name = "ArtPerDecade")
 
+# One word per row by abstract, and remove stop words
 exbyab <- extended |> unnest_tokens(word, AbstractText) |>
   anti_join(stop_words)
 
@@ -199,7 +200,7 @@ combined <- asiacombined |>
 
 combined$Region <- as.factor(combined$Region)
 
-# Final visualisation yippee!!!!
+# Final visualisation ----------------------------------------------------------
 
 combined |>
   ggplot(mapping = aes(x = Decade, y = PropDecade, colour = Region))+

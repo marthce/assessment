@@ -18,7 +18,7 @@ clean_tibble_wider <- clean_tibble |>
   unnest_wider(Article) |>
   unnest_wider(Abstract, names_repair = "unique") |>
   unnest(cols = starts_with("AbstractText")) |>
-  unnest(cols = starts_with("AbstractText")) |>
+  unnest(cols = starts_with("AbstractText")) |> #unnest twice
   group_by(PMID) |>
   mutate(AbstractText = str_flatten(unique(c_across(starts_with("AbstractText"))),
                                   collapse = " "))
