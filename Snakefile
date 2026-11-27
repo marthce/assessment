@@ -29,9 +29,11 @@ rule data_download:
         """
         cd code
         if [ {config[test]} = "True" ]; then
-        bash 1_data_download.sh ../{input.twenty}
+            bash 1_data_download.sh ../{input.twenty}
+        elif [ {config[test]} = "False" ]; then
+            bash 1_data_download.sh ../{input.all}
         else
-        bash 1_data_download.sh ../{input.all}
+            echo "Invalid input; please enter TRUE or FALSE"
         fi
         """
 
