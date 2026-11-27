@@ -1,18 +1,38 @@
+configfile: "snakemake-config.yml"
+
 rule all:
     "The default rule"
     input:
         "results/finalplot.png"
 
+rule get_pmids:
+    "Get list of pmids"
+    input:
+        "begin_snakefile.txt"
+    output:
+        "raw/pmids_all.txt"
+        "raw/pmids_20.txt"
+    shell:
+        """
+        cd code
+        bash 0_get_pmids.sh
+        """
+
 rule data_download:
     "Download and clean data"
     input:
-        "begin_snakefile.txt"
+        all = "raw/pmids_all.txt",
+        twenty = "raw/pmids_20.txt"
     output:
         "clean/clean_data.xml"
     shell:
         """
         cd code
-        bash 1_data_download.sh
+        if [ {config[test]} = "True" ]; then
+        bash 1_data_download.sh ../{input.twenty}
+        else
+        bash 1_data_download.sh ../{input.all}
+        fi
         """
 
 rule convert_data:
