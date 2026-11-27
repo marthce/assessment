@@ -192,19 +192,24 @@ combined <- asiacombined |>
   full_join(middleeastcombined) |>
   full_join(europecombined) |>
   full_join(africacombined) |>
-  full_join(oceaniacombined)
+  full_join(oceaniacombined) |>
+  group_by(Region) |>
+  add_count(Decade, name = "RegionPerDecade") |>
+  mutate(PropDecade = RegionPerDecade / ArtPerDecade)
 
+combined$Region <- as.factor(combined$Region)
+levels(combined$Region) <- c("Asia", "Europe", "Africa", "Americas",
+                             "Oceania", "Middle East")
 
 # Final visualisation yippee!!!!
 
 combined |>
-  group_by(Region) |> add_count(Decade, name = "RegionPerDecade") |>
-  mutate(PropDecade = RegionPerDecade / ArtPerDecade) |>
   ggplot(mapping = aes(x = Decade, y = PropDecade, colour = Region))+
   geom_point()+
   geom_line()+
-  scale_x_continuous(label = c("1970s", "1980s", "1990s", "2000s", "2010s", "2020s"))+
-  facet_wrap(~Region, ncol = 2)+
+  scale_x_continuous(limits = c(1970, 2020),
+                     label = c("1970s", "1980s", "1990s", "2000s", "2010s", "2020s"))+
+  facet_wrap(~Region, ncol = 2, drop = FALSE)+
   labs(y = "Proportion", x = NULL,
        title = "Proportion of articles mentioning different world regions by decade")+
   theme(legend.position = "none") -> finalplot

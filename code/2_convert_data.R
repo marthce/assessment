@@ -16,7 +16,13 @@ clean_tibble_wider <- clean_tibble |>
   unnest_wider(PubmedArticleSet, names_repair = "unique") |>
   unnest_wider(DateCompleted) |>
   unnest_wider(Article) |>
-  unnest_wider(Abstract)
+  unnest_wider(Abstract, names_repair = "unique") |>
+  unnest(cols = starts_with("AbstractText")) |>
+  unnest(cols = starts_with("AbstractText")) |>
+  group_by(PMID) |>
+  mutate(AbstractText = str_flatten(unique(c_across(starts_with("AbstractText"))),
+                                  collapse = " "))
+
 
 # Select columns we want (PMID, ArticleTitle, AbstractText, Year)
 
