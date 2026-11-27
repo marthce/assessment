@@ -198,8 +198,6 @@ combined <- asiacombined |>
   mutate(PropDecade = RegionPerDecade / ArtPerDecade)
 
 combined$Region <- as.factor(combined$Region)
-levels(combined$Region) <- c("Asia", "Europe", "Africa", "Americas",
-                             "Oceania", "Middle East")
 
 # Final visualisation yippee!!!!
 
