@@ -14,11 +14,11 @@ clean_tibble <- as_tibble(cleandatalist) |> unnest_longer(PubmedArticleSet)
 clean_tibble_wider <- clean_tibble |>
   filter(PubmedArticleSet_id == "MedlineCitation") |>
   unnest_wider(PubmedArticleSet, names_repair = "unique") |>
-  unnest_wider(DateCompleted) |>
-  unnest_wider(Article) |>
+  unnest_wider(DateCompleted, names_repair = "unique") |>
+  unnest_wider(Article, names_repair = "unique") |>
   unnest_wider(Abstract, names_repair = "unique") |>
-  unnest(cols = starts_with("AbstractText")) |>
-  unnest(cols = starts_with("AbstractText")) |> #unnest twice
+  unnest(cols = starts_with("AbstractText"), keep_empty = TRUE) |>
+  unnest(cols = starts_with("AbstractText"), keep_empty = TRUE) |> #unnest twice
   group_by(PMID) |>
   mutate(AbstractText = str_flatten(unique(c_across(starts_with("AbstractText"))),
                                   collapse = " "))
