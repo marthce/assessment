@@ -6,6 +6,7 @@ IMPORTANT:
 - The config file containing the test is called snakemake-config.yml. It will be set to TRUE by default,
 and will run scripts 1-4 using a random subset of 20 articles. Set to FALSE, it will run scripts 1-4 using
 the full list of PMIDs downloaded. Set to anything else, it will fail the pipeline at script 1.
+- If it hasn't already, Conda must be initialised, before the environment is created from environment.yml.
 
 SUMMARY OF METHOD:
 - Search for and download a set of research articles on antimicrobial resistance (in English) from PubMed.
